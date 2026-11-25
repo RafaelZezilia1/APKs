@@ -1,0 +1,41 @@
+
+name: Build DuckScale APK
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Preparar Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Extrair ZIP
+        run: |
+          ZIP=$(find . -maxdepth 1 -name '*.zip' -print -quit)
+          unzip -q "$ZIP" -d source
+
+      - name: Compilar APK
+        run: |
+          cd source
+          chmod +x build.sh
+          sdkmanager "platforms;android-34" "build-tools;34.0.0"
+          ./build.sh
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: DuckScale-apk
+          path: source/DuckScale.apk
+          
